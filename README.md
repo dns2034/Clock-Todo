@@ -2,8 +2,8 @@
 
 A cute, minimal **Analog Clock Todo List** — a single-file HTML app where your tasks live on the clock face as colored pizza slices, so you always know what's happening and when.
 
-![clocktodo light mode](imgs\dark-mode.png)
-![clocktodo dark mode](imgs\light-mode.png)
+![clocktodo light mode](C:\Users\Lenovo\Desktop\Proj\clock-todo\imgs\light-mode.png)
+![clocktodo dark mode](C:\Users\Lenovo\Desktop\Proj\clock-todo\imgs\dark-mode.png)
 
 
 ---
