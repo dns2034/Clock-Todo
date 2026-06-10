@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clock Todo ✿</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+[data-theme="light"]{
+  --bg:#F7F5F2;--surface:#FFFFFF;--surface2:#F2F0ED;
+  --border:#E6E2DC;--border2:#D4D0C8;
+  --text:#2A2A28;--muted:#8A8880;--hint:#C4C0B8;
+}
+[data-theme="dark"]{
+  --bg:#1A1918;--surface:#222120;--surface2:#2A2927;
+  --border:#383632;--border2:#46443E;
+  --text:#EEE9E2;--muted:#8A8880;--hint:#46443E;
+}
+:root{
+  --purple:#B09FE8;--purple-bg:#F0EDFB;--purple-text:#5B47B8;
+  --blue:#7BAFD4;--blue-bg:#EAF3FB;--blue-text:#2C6A9A;
+  --teal:#6BBFAA;--teal-bg:#E5F4F0;--teal-text:#2A7A64;
+  --pink:#F4A7BB;--pink-bg:#FEF0F4;--pink-text:#B03D65;
+  --amber:#F0C070;--amber-bg:#FEF6E4;--amber-text:#A0700A;
+  --red:#E8706A;--r:10px;--rc:14px;
+}
+[data-theme="dark"]{
+  --purple-bg:#261E40;--purple-text:#C4B8F0;
+  --blue-bg:#1A2D3D;--blue-text:#90C4E8;
+  --teal-bg:#162C28;--teal-text:#80CDB8;
+  --pink-bg:#3A1A24;--pink-text:#F4A7BB;
+  --amber-bg:#2E2410;--amber-text:#F0C878;
+}
+
+html,body{height:100%;overflow:hidden;}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);transition:background .3s,color .3s;}
+
+/* ── LAYOUT ── */
+.app{display:grid;grid-template-columns:1fr 340px;height:100vh;}
+
+/* ── LEFT ── */
+.left{
+  display:flex;flex-direction:column;align-items:center;
+  justify-content:center;padding:52px 20px 20px;
+  background:var(--bg);overflow:hidden;position:relative;
+}
+
+/* ── RIGHT ── */
+.right{
+  background:var(--surface);border-left:1px solid var(--border);
+  display:flex;flex-direction:column;overflow:hidden;padding-top:48px;
+}
+.right-scroll{
+  flex:1;overflow-y:auto;padding:12px 16px;
+  display:flex;flex-direction:column;gap:12px;
+}
+.right-scroll::-webkit-scrollbar{width:3px;}
+.right-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px;}
+
+/* ── TOP BARS ── */
+.logo-bar{
+  position:fixed;top:0;left:0;z-index:300;
+  display:flex;align-items:center;gap:7px;
+  padding:11px 18px;background:var(--bg);
+  border-bottom:1px solid transparent;
+}
+.logo-name{font-size:14px;font-weight:800;color:var(--text);letter-spacing:-.4px;}
+.logo-name em{font-style:normal;color:var(--purple);}
+.dark-bar{
+  position:fixed;top:0;right:0;z-index:300;
+  padding:10px 16px;background:var(--surface);
+  border-bottom:1px solid transparent;
+}
+.theme-btn{
+  background:var(--surface2);border:1.5px solid var(--border);
+  border-radius:20px;padding:5px 12px;font-size:11px;font-weight:700;
+  color:var(--muted);cursor:pointer;font-family:'Nunito',sans-serif;transition:all .2s;
+}
+.theme-btn:hover{color:var(--text);border-color:var(--border2);}
+
+/* ── CLOCK ── */
+.dtime{
+  font-family:'Space Mono',monospace;font-size:18px;font-weight:700;
+  color:var(--text);letter-spacing:3px;margin-bottom:14px;opacity:.9;
+}
+.clock-wrap{
+  width:min(56vh,360px);height:min(56vh,360px);
+  flex-shrink:0;
+}
+#clock-svg{width:100%;height:100%;display:block;}
+.legend{
+  display:flex;flex-wrap:wrap;gap:6px;
+  margin-top:14px;justify-content:center;max-width:360px;
+}
+.leg{
+  display:flex;align-items:center;gap:5px;
+  font-size:10px;font-weight:700;color:var(--muted);
+  background:var(--surface);border:1px solid var(--border);
+  padding:3px 9px;border-radius:20px;
+}
+.leg-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+
+/* ── PANEL ── */
+.panel{background:var(--surface2);border-radius:var(--rc);padding:13px;}
+.ph{
+  font-size:10px;font-weight:800;color:var(--muted);text-transform:uppercase;
+  letter-spacing:.9px;margin-bottom:11px;display:flex;align-items:center;gap:6px;
+}
+
+/* ── FORM ── */
+.fg{margin-bottom:9px;}
+.fg label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:3px;}
+.fg input,.fg select,.fg textarea{
+  width:100%;padding:7px 10px;border:1.5px solid var(--border);border-radius:8px;
+  font-size:12px;font-family:'Nunito',sans-serif;font-weight:500;
+  background:var(--surface);color:var(--text);outline:none;transition:border-color .2s;
+}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--purple);}
+.fg textarea{resize:none;height:44px;font-size:11px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.cc{font-size:10px;color:var(--hint);text-align:right;margin-top:2px;}
+.cc.w{color:#E24B4A;}
+.dq{display:flex;gap:4px;margin-top:5px;}
+.dq button{
+  flex:1;padding:4px 2px;border-radius:6px;
+  border:1.5px solid var(--border);background:var(--surface);
+  font-size:10px;font-weight:700;cursor:pointer;
+  color:var(--muted);font-family:'Nunito',sans-serif;transition:all .15s;
+}
+.dq button:hover{border-color:var(--purple);color:var(--purple);}
+.btn-add{
+  width:100%;padding:9px;border:none;border-radius:8px;
+  background:var(--purple);color:#fff;
+  font-size:12px;font-weight:800;font-family:'Nunito',sans-serif;
+  cursor:pointer;letter-spacing:.2px;transition:opacity .15s,transform .1s;margin-top:2px;
+}
+.btn-add:hover{opacity:.88;}
+.btn-add:active{transform:scale(.98);}
+
+/* ── FILTERS ── */
+.frow{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;}
+.fb{
+  padding:4px 9px;border-radius:20px;
+  border:1.5px solid var(--border);background:var(--surface);
+  font-size:10px;font-weight:700;cursor:pointer;
+  color:var(--muted);font-family:'Nunito',sans-serif;transition:all .15s;
+}
+.fb.act{background:var(--purple);color:#fff;border-color:var(--purple);}
+
+/* ── LIST ── */
+.lh{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px;}
+.bclear{
+  font-size:10px;font-weight:700;color:var(--red);
+  background:none;border:1.5px solid #FDECEA;border-radius:20px;
+  padding:3px 9px;cursor:pointer;font-family:'Nunito',sans-serif;transition:all .15s;
+}
+.bclear:hover{background:#FDECEA;}
+.tlist{display:flex;flex-direction:column;gap:6px;}
+.ti{
+  display:flex;align-items:flex-start;gap:8px;
+  padding:9px 10px;border-radius:9px;
+  background:var(--surface);border:1.5px solid var(--border);
+  transition:opacity .2s,border-color .2s;position:relative;overflow:hidden;
+}
+.ti::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;border-radius:3px 0 0 3px;}
+.ti.pri-high::before{background:var(--red);}
+.ti.pri-normal::before{background:var(--purple);}
+.ti.pri-low::before{background:var(--hint);}
+.ti.done{opacity:.38;}
+.ti.done .tname{text-decoration:line-through;}
+.ti.soon{border-color:var(--purple);}
+.tchk{
+  width:15px;height:15px;border-radius:4px;
+  border:2px solid var(--border2);cursor:pointer;
+  flex-shrink:0;margin-top:2px;
+  appearance:none;-webkit-appearance:none;position:relative;transition:all .15s;
+}
+.tchk:checked{background:var(--purple);border-color:var(--purple);}
+.tchk:checked::after{content:'✓';position:absolute;top:-2px;left:1px;font-size:10px;color:#fff;font-weight:700;}
+.tbody{flex:1;min-width:0;}
+.tname{font-size:12px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tmeta{display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap;}
+.ttime{font-family:'Space Mono',monospace;font-size:9px;color:var(--muted);}
+.cbadge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;}
+.pbadge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;}
+.pbadge.high{background:#FDECEA;color:var(--red);}
+.pbadge.normal{background:var(--purple-bg);color:var(--purple-text);}
+.pbadge.low{background:var(--surface2);color:var(--muted);}
+.snbadge{font-size:9px;font-weight:700;background:var(--amber-bg);color:var(--amber-text);padding:2px 7px;border-radius:20px;}
+.tnote{font-size:10px;color:var(--muted);margin-top:3px;font-style:italic;line-height:1.4;}
+.tdel{background:none;border:none;cursor:pointer;color:var(--hint);font-size:17px;padding:0 2px;flex-shrink:0;transition:color .15s;line-height:1;}
+.tdel:hover{color:var(--red);}
+.empty{text-align:center;padding:22px 0;color:var(--hint);font-size:12px;line-height:2;}
+
+/* ── TOAST ── */
+.twrap{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:999;display:flex;flex-direction:column;gap:6px;pointer-events:none;}
+.toast{background:var(--text);color:var(--bg);padding:8px 16px;border-radius:20px;font-size:11px;font-weight:700;font-family:'Nunito',sans-serif;opacity:0;transform:translateY(-8px);transition:all .25s;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.15);}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.err{background:#A32D2D;color:#fff;}
+.toast.ok{background:#2A7A64;color:#fff;}
+
+/* ── MODAL ── */
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);z-index:500;align-items:center;justify-content:center;}
+.mo.show{display:flex;}
+.md{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--rc);padding:22px 20px;max-width:256px;width:90%;box-shadow:0 12px 40px rgba(0,0,0,.18);text-align:center;}
+.md h3{font-size:14px;font-weight:800;margin-bottom:6px;color:var(--text);}
+.md p{font-size:12px;color:var(--muted);margin-bottom:18px;line-height:1.55;}
+.md-btns{display:flex;gap:8px;}
+.md-btns button{flex:1;padding:9px;border-radius:8px;font-size:12px;font-weight:700;font-family:'Nunito',sans-serif;cursor:pointer;transition:opacity .15s;}
+.md-cancel{background:var(--surface2);border:1.5px solid var(--border);color:var(--muted);}
+.md-cancel:hover{color:var(--text);}
+.md-ok{background:var(--red);border:none;color:#fff;}
+.md-ok:hover{opacity:.86;}
+
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.arc-soon{animation:pulse 1.4s ease-in-out infinite;}
+</style>
+</head>
+<body>
+
+<div class="twrap" id="twrap"></div>
+
+<!-- logo top-left -->
+<div class="logo-bar">
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+    <ellipse cx="10" cy="5.8" rx="2.6" ry="3.6" fill="#F4A7BB" opacity=".9"/>
+    <ellipse cx="10" cy="5.8" rx="2.6" ry="3.6" fill="#F4A7BB" opacity=".9" transform="rotate(60 10 10)"/>
+    <ellipse cx="10" cy="5.8" rx="2.6" ry="3.6" fill="#B09FE8" opacity=".85" transform="rotate(120 10 10)"/>
+    <ellipse cx="10" cy="5.8" rx="2.6" ry="3.6" fill="#F4A7BB" opacity=".9" transform="rotate(180 10 10)"/>
+    <ellipse cx="10" cy="5.8" rx="2.6" ry="3.6" fill="#B09FE8" opacity=".85" transform="rotate(240 10 10)"/>
+    <ellipse cx="10" cy="5.8" rx="2.6" ry="3.6" fill="#F4A7BB" opacity=".9" transform="rotate(300 10 10)"/>
+    <circle cx="10" cy="10" r="2.8" fill="#fff"/>
+    <circle cx="10" cy="10" r="1.6" fill="#F0C070"/>
+  </svg>
+  <span class="logo-name">clock<em>todo</em></span>
+</div>
+
+<!-- dark mode top-right -->
+<div class="dark-bar">
+  <button class="theme-btn" id="theme-btn" onclick="toggleTheme()">☽ Dark</button>
+</div>
+
+<!-- confirm modal -->
+<div class="mo" id="mo">
+  <div class="md">
+    <h3>Clear all tasks?</h3>
+    <p>All tasks will be removed permanently. This can't be undone.</p>
+    <div class="md-btns">
+      <button class="md-cancel" onclick="closeModal()">Cancel</button>
+      <button class="md-ok" onclick="confirmClear()">Yes, clear all</button>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+  <!-- LEFT: CLOCK -->
+  <div class="left">
+    <div class="dtime" id="dtime">12:00:00 AM</div>
+    <div class="clock-wrap">
+      <svg id="clock-svg" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="legend">
+      <div class="leg"><div class="leg-dot" style="background:#7BAFD4"></div>Work</div>
+      <div class="leg"><div class="leg-dot" style="background:#B09FE8"></div>Study</div>
+      <div class="leg"><div class="leg-dot" style="background:#6BBFAA"></div>Personal</div>
+      <div class="leg"><div class="leg-dot" style="background:#F4A7BB"></div>Health</div>
+      <div class="leg"><div class="leg-dot" style="background:#F0C070"></div>Other</div>
+      <div class="leg"><div class="leg-dot" style="background:#E8706A"></div>High priority</div>
+      <div class="leg"><div class="leg-dot" style="background:#C4C0B8"></div>Low priority</div>
+    </div>
+  </div>
+
+  <!-- RIGHT: FORM + LIST -->
+  <div class="right">
+    <div class="right-scroll">
+
+      <!-- Add Task -->
+      <div class="panel">
+        <div class="ph">
+          <svg width="13" height="13" viewBox="0 0 20 20" fill="none">
+            <ellipse cx="10" cy="5.8" rx="2.3" ry="3.2" fill="#F4A7BB" opacity=".9"/>
+            <ellipse cx="10" cy="5.8" rx="2.3" ry="3.2" fill="#F4A7BB" opacity=".9" transform="rotate(60 10 10)"/>
+            <ellipse cx="10" cy="5.8" rx="2.3" ry="3.2" fill="#B09FE8" opacity=".85" transform="rotate(120 10 10)"/>
+            <ellipse cx="10" cy="5.8" rx="2.3" ry="3.2" fill="#F4A7BB" opacity=".9" transform="rotate(180 10 10)"/>
+            <ellipse cx="10" cy="5.8" rx="2.3" ry="3.2" fill="#B09FE8" opacity=".85" transform="rotate(240 10 10)"/>
+            <ellipse cx="10" cy="5.8" rx="2.3" ry="3.2" fill="#F4A7BB" opacity=".9" transform="rotate(300 10 10)"/>
+            <circle cx="10" cy="10" r="2.6" fill="#fff"/><circle cx="10" cy="10" r="1.5" fill="#F0C070"/>
+          </svg>
+          Add Task
+        </div>
+
+        <div class="fg">
+          <label>Task name</label>
+          <input type="text" id="fn" placeholder="e.g. Morning review" maxlength="50">
+          <div class="cc" id="cc">0 / 50</div>
+        </div>
+        <div class="g2">
+          <div class="fg">
+            <label>Category</label>
+            <select id="fcat">
+              <option value="work">Work</option>
+              <option value="study">Study</option>
+              <option value="personal">Personal</option>
+              <option value="health">Health</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="fg">
+            <label>Priority</label>
+            <select id="fpri">
+              <option value="normal">Normal</option>
+              <option value="high">High !</option>
+              <option value="low">Low</option>
+            </select>
+          </div>
+        </div>
+        <div class="fg">
+          <label>Start time</label>
+          <input type="time" id="ftime">
+        </div>
+        <div class="fg">
+          <label>Duration (h · min)</label>
+          <div class="g2">
+            <input type="number" id="fdh" placeholder="hrs" min="0" max="23" style="text-align:center;">
+            <input type="number" id="fdm" placeholder="min" min="0" max="59" style="text-align:center;">
+          </div>
+          <div class="dq">
+            <button onclick="sd(0,15)">15m</button>
+            <button onclick="sd(0,30)">30m</button>
+            <button onclick="sd(1,0)">1h</button>
+            <button onclick="sd(2,0)">2h</button>
+            <button onclick="sd(4,0)">4h</button>
+            <button onclick="sd(8,0)">8h</button>
+          </div>
+        </div>
+        <div class="fg">
+          <label>Note <span style="font-weight:400;color:var(--hint)">(optional)</span></label>
+          <textarea id="fnote" placeholder="Short note..."></textarea>
+        </div>
+        <button class="btn-add" onclick="addTask()">Add Task</button>
+      </div>
+
+      <!-- Task List -->
+      <div class="panel">
+        <div class="lh">
+          <div class="ph" style="margin:0">
+            <svg width="13" height="13" viewBox="0 0 20 20" fill="none">
+              <ellipse cx="10" cy="5.8" rx="2.3" ry="3.2" fill="#F4A7BB" opacity=".9"/>
+              <ellipse cx="10" cy="5.8" rx="2.3" ry="3.2" fill="#F4A7BB" opacity=".9" transform="rotate(60 10 10)"/>
+              <ellipse cx="10" cy="5.8" rx="2.3" ry="3.2" fill="#B09FE8" opacity=".85" transform="rotate(120 10 10)"/>
+              <ellipse cx="10" cy="5.8" rx="2.3" ry="3.2" fill="#F4A7BB" opacity=".9" transform="rotate(180 10 10)"/>
+              <ellipse cx="10" cy="5.8" rx="2.3" ry="3.2" fill="#B09FE8" opacity=".85" transform="rotate(240 10 10)"/>
+              <ellipse cx="10" cy="5.8" rx="2.3" ry="3.2" fill="#F4A7BB" opacity=".9" transform="rotate(300 10 10)"/>
+              <circle cx="10" cy="10" r="2.6" fill="#fff"/><circle cx="10" cy="10" r="1.5" fill="#F0C070"/>
+            </svg>
+            Tasks
+          </div>
+          <button class="bclear" onclick="clearAll()">Clear all</button>
+        </div>
+        <div class="frow">
+          <button class="fb act" onclick="setF('all',this)">All</button>
+          <button class="fb" onclick="setF('work',this)">Work</button>
+          <button class="fb" onclick="setF('study',this)">Study</button>
+          <button class="fb" onclick="setF('personal',this)">Personal</button>
+          <button class="fb" onclick="setF('health',this)">Health</button>
+          <button class="fb" onclick="setF('other',this)">Other</button>
+        </div>
+        <div class="tlist" id="tlist"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const CAT={
+  work:    {c:'#7BAFD4',bg:'#EAF3FB',t:'#2C6A9A',label:'Work'},
+  study:   {c:'#B09FE8',bg:'#F0EDFB',t:'#5B47B8',label:'Study'},
+  personal:{c:'#6BBFAA',bg:'#E5F4F0',t:'#2A7A64',label:'Personal'},
+  health:  {c:'#F4A7BB',bg:'#FEF0F4',t:'#B03D65',label:'Health'},
+  other:   {c:'#F0C070',bg:'#FEF6E4',t:'#A0700A',label:'Other'},
+};
+const CATDK={
+  work:{bg:'#1A2D3D',t:'#90C4E8'},study:{bg:'#261E40',t:'#C4B8F0'},
+  personal:{bg:'#162C28',t:'#80CDB8'},health:{bg:'#3A1A24',t:'#F4A7BB'},other:{bg:'#2E2410',t:'#F0C878'},
+};
+// Priority border colors on pizza slice
+const PRICOLOR={high:'#E8706A',normal:null,low:'#C4C0B8'};
+
+let tasks=[],activeF='all',isDark=false;
+
+function load(){try{tasks=JSON.parse(localStorage.getItem('ctasks')||'[]');}catch(e){tasks=[];}}
+function save(){localStorage.setItem('ctasks',JSON.stringify(tasks));}
+
+function toggleTheme(){
+  isDark=!isDark;
+  document.documentElement.setAttribute('data-theme',isDark?'dark':'light');
+  document.getElementById('theme-btn').textContent=isDark?'☀ Light':'☽ Dark';
+  drawClock();
+}
+
+function toast(msg,type='err'){
+  const w=document.getElementById('twrap');
+  const el=document.createElement('div');
+  el.className='toast '+(type==='ok'?'ok':'err');
+  el.textContent=msg;
+  w.appendChild(el);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.add('show')));
+  setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),300);},3200);
+}
+
+function t2m(t){const[h,m]=t.split(':').map(Number);return h*60+m;}
+function nowM(){const n=new Date();return n.getHours()*60+n.getMinutes();}
+function fmt(t){let[h,m]=t.split(':').map(Number);const p=h>=12?'PM':'AM';h=h%12||12;return h+':'+String(m).padStart(2,'0')+' '+p;}
+function fmtDur(min){const h=Math.floor(min/60),m=min%60;if(h&&m)return h+'h '+m+'m';if(h)return h+'h';return m+'m';}
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function sd(h,m){document.getElementById('fdh').value=h||'';document.getElementById('fdm').value=m||'';}
+function getDur(){return(parseInt(document.getElementById('fdh').value)||0)*60+(parseInt(document.getElementById('fdm').value)||0);}
+
+function upcomingId(){
+  const now=nowM();let uid=null,best=Infinity;
+  for(const t of tasks){if(t.done)continue;const d=t2m(t.time)-now;if(d>=0&&d<=15&&d<best){best=d;uid=t.id;}}
+  return uid;
+}
+
+function addTask(){
+  const name=document.getElementById('fn').value.trim();
+  const cat=document.getElementById('fcat').value;
+  const time=document.getElementById('ftime').value;
+  const dur=getDur();
+  const note=document.getElementById('fnote').value.trim();
+  const pri=document.getElementById('fpri').value;
+
+  if(!name){toast('Task name is required');return;}
+  if(name.length>50){toast('Max 50 characters');return;}
+  if(!time){toast('Please pick a start time');return;}
+  if(!dur||dur<=0){toast('Please set a duration');return;}
+  if(dur>1440){toast('Duration cannot exceed 24 hours');return;}
+
+  const sm=t2m(time),em=sm+dur;
+  if(em<=nowM()){toast('This task has already ended');return;}
+  if(tasks.filter(t=>!t.done).length>=12){toast('Max 12 active tasks reached');return;}
+  for(const t of tasks){
+    if(t.done)continue;
+    const ts=t2m(t.time),te=ts+t.dur;
+    if(sm===ts){toast('A task already starts at that time');return;}
+    if(sm<te&&em>ts){toast('Overlaps with "'+t.name+'"');return;}
+  }
+
+  tasks.push({id:Date.now(),name,cat,dur,time,note,done:false,pri});
+  tasks.sort((a,b)=>t2m(a.time)-t2m(b.time));
+  save();renderList();drawClock();
+
+  document.getElementById('fn').value='';
+  document.getElementById('fnote').value='';
+  document.getElementById('fdh').value='';
+  document.getElementById('fdm').value='';
+  document.getElementById('cc').textContent='0 / 50';
+  toast('Task added!','ok');
+}
+
+function delTask(id){tasks=tasks.filter(t=>t.id!==id);save();renderList();drawClock();}
+function toggleDone(id){const t=tasks.find(t=>t.id===id);if(t)t.done=!t.done;save();renderList();drawClock();}
+function clearAll(){if(!tasks.length){toast('No tasks to clear');return;}document.getElementById('mo').classList.add('show');}
+function closeModal(){document.getElementById('mo').classList.remove('show');}
+function confirmClear(){tasks=[];save();renderList();drawClock();closeModal();toast('All tasks cleared','ok');}
+function setF(c,btn){activeF=c;document.querySelectorAll('.fb').forEach(b=>b.classList.remove('act'));btn.classList.add('act');renderList();}
+
+function renderList(){
+  const list=document.getElementById('tlist');
+  const uid=upcomingId();
+  const vis=tasks.filter(t=>activeF==='all'||t.cat===activeF);
+  if(!vis.length){list.innerHTML='<div class="empty">No tasks yet ✿<br>Add one above!</div>';return;}
+  list.innerHTML=vis.map(t=>{
+    const c=CAT[t.cat];
+    const bg=isDark?CATDK[t.cat].bg:c.bg;
+    const tx=isDark?CATDK[t.cat].t:c.t;
+    const isUp=t.id===uid;
+    const priLabel=t.pri==='high'?'High !':t.pri==='low'?'Low':'Normal';
+    return `<div class="ti pri-${t.pri}${t.done?' done':''}${isUp?' soon':''}">
+      <input type="checkbox" class="tchk" ${t.done?'checked':''} onchange="toggleDone(${t.id})">
+      <div class="tbody">
+        <div class="tname">${esc(t.name)}</div>
+        <div class="tmeta">
+          <span class="ttime">${fmt(t.time)} · ${fmtDur(t.dur)}</span>
+          <span class="cbadge" style="background:${bg};color:${tx}">${c.label}</span>
+          <span class="pbadge ${t.pri}">${priLabel}</span>
+          ${isUp?'<span class="snbadge">Soon</span>':''}
+        </div>
+        ${t.note?`<div class="tnote">${esc(t.note)}</div>`:''}
+      </div>
+      <button class="tdel" onclick="delTask(${t.id})">×</button>
+    </div>`;
+  }).join('');
+}
+
+/* ────────── CLOCK ────────── */
+function pol(deg,r,cx,cy){
+  const rad=(deg-90)*Math.PI/180;
+  return{x:cx+r*Math.cos(rad),y:cy+r*Math.sin(rad)};
+}
+
+function sector(sa,ea,iR,oR,cx,cy){
+  const span=((ea-sa)+360)%360;
+  if(span===0)return'';
+  const large=span>180?1:0;
+  const o1=pol(sa,oR,cx,cy),o2=pol(ea,oR,cx,cy);
+  const i1=pol(sa,iR,cx,cy),i2=pol(ea,iR,cx,cy);
+  return`M${i1.x} ${i1.y} L${o1.x} ${o1.y} A${oR} ${oR} 0 ${large} 1 ${o2.x} ${o2.y} L${i2.x} ${i2.y} A${iR} ${iR} 0 ${large} 0 ${i1.x} ${i1.y}Z`;
+}
+
+function mToAngle(m){return((m%720)/720)*360;}
+
+function drawClock(){
+  const svg=document.getElementById('clock-svg');
+  const S=400; // fixed viewBox size — CSS scales it
+  const cx=S/2,cy=S/2;
+  const R=S/2-8;       // outer edge of clock
+  const OUTER=R-2;     // outer edge of pizza slices
+  const INNER=R*0.38;  // inner donut hole — clock hands live here
+
+  svg.setAttribute('viewBox',`0 0 ${S} ${S}`);
+
+  const dark=isDark;
+  const face  =dark?'#222120':'#FFFFFF';
+  const ring  =dark?'#383632':'#EAE6DF';
+  const numCol=dark?'#6A6860':'#B0ABA2';
+  const majCol=dark?'#504E48':'#CCCCCC';
+  const minCol=dark?'#383632':'#E8E4DC';
+  const hand  =dark?'#EEE9E2':'#2A2A28';
+
+  let h='';
+
+  // Soft outer glow ring
+  h+=`<circle cx="${cx}" cy="${cy}" r="${R+5}" fill="${dark?'#2A2927':'#EDE9E2'}"/>`;
+  // Face
+  h+=`<circle cx="${cx}" cy="${cy}" r="${R}" fill="${face}" stroke="${ring}" stroke-width="1.5"/>`;
+
+  // ── PIZZA SLICES ──
+  const uid=upcomingId();
+  const active=tasks.filter(t=>!t.done);
+
+  active.forEach(t=>{
+    const c=CAT[t.cat];
+    const sm=t2m(t.time),em=sm+t.dur;
+    const sa=mToAngle(sm),ea=mToAngle(em);
+    const span=((ea-sa)+360)%360||360;
+    const isUp=t.id===uid;
+
+    // Main filled pizza slice
+    const d=sector(sa,ea,INNER,OUTER,cx,cy);
+    if(!d)return;
+    h+=`<path d="${d}" fill="${c.c}" opacity="${isUp?0.9:0.68}" class="${isUp?'arc-soon':''}">
+      <title>${esc(t.name)} · ${fmt(t.time)} · ${fmtDur(t.dur)}</title></path>`;
+
+    // Priority border — thin ring on the outer edge of the slice
+    const pc=PRICOLOR[t.pri];
+    if(pc){
+      const pd=sector(sa,ea,OUTER-7,OUTER,cx,cy);
+      h+=`<path d="${pd}" fill="${pc}" opacity="0.9"/>`;
+    }
+
+    // Soft inner highlight (shimmer near center hole)
+    const hd=sector(sa,ea,INNER,INNER+10,cx,cy);
+    h+=`<path d="${hd}" fill="#fff" opacity="0.14"/>`;
+
+    // Task name label in center of slice
+    if(span>=12){
+      const mid=sa+span/2;
+      const textR=(INNER+OUTER)/2;
+      const tp=pol(mid,textR,cx,cy);
+      const fs=span>55?12:span>28?10:8;
+      const maxCh=Math.max(2,Math.floor(span/5.5));
+      let lbl=t.name.length>maxCh?t.name.slice(0,maxCh)+'…':t.name;
+      h+=`<text x="${tp.x}" y="${tp.y}"
+        text-anchor="middle" dominant-baseline="central"
+        font-size="${fs}" font-family="Nunito,sans-serif" font-weight="800" fill="#fff"
+        paint-order="stroke" stroke="${c.c}" stroke-width="2.5" stroke-linejoin="round"
+        transform="rotate(${mid-90},${tp.x},${tp.y})">${esc(lbl)}</text>`;
+    }
+  });
+
+  // Donut hole — white circle to cut out center for clock hands
+  h+=`<circle cx="${cx}" cy="${cy}" r="${INNER}" fill="${face}"/>`;
+
+  // Thin separator lines between slices for clarity
+  active.forEach(t=>{
+    const sm=t2m(t.time);
+    const sa=mToAngle(sm);
+    const p1=pol(sa,INNER+1,cx,cy),p2=pol(sa,OUTER-1,cx,cy);
+    h+=`<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}" stroke="${face}" stroke-width="1.5" opacity="0.6"/>`;
+  });
+
+  // ── TICKS ──
+  for(let i=0;i<60;i++){
+    const a=i*6,maj=i%5===0;
+    const p1=pol(a,R-(maj?16:8),cx,cy);
+    const p2=pol(a,R-1,cx,cy);
+    h+=`<line x1="${p1.x}" y1="${p1.y}" x2="${p2.x}" y2="${p2.y}"
+      stroke="${maj?majCol:minCol}" stroke-width="${maj?2:1}" stroke-linecap="round"/>`;
+  }
+
+  // ── HOUR NUMERALS (inside donut hole) ──
+  const NR=INNER*0.68;
+  const NFS=Math.max(10,INNER*0.22);
+  const NUMS=['12','1','2','3','4','5','6','7','8','9','10','11'];
+  for(let i=0;i<12;i++){
+    const p=pol(i*30,NR,cx,cy);
+    h+=`<text x="${p.x}" y="${p.y}" text-anchor="middle" dominant-baseline="central"
+      font-size="${NFS}" font-family="Nunito,sans-serif" font-weight="700"
+      fill="${numCol}">${NUMS[i]}</text>`;
+  }
+
+  // ── HANDS ──
+  const now=new Date();
+  const sec=now.getSeconds(),min=now.getMinutes()+sec/60,hr=(now.getHours()%12)+min/60;
+  const hA=hr*30,mA=min*6,sA=sec*6;
+
+  const handLen=INNER*0.82;
+  const mLen=INNER*0.88;
+  const sLen=INNER*0.92;
+
+  const hP=pol(hA,handLen*0.72,cx,cy),hT=pol((hA+180)%360,INNER*0.15,cx,cy);
+  const mP=pol(mA,mLen*0.88,cx,cy),mT=pol((mA+180)%360,INNER*0.12,cx,cy);
+  const sP=pol(sA,sLen,cx,cy);
+
+  h+=`<line x1="${hT.x}" y1="${hT.y}" x2="${hP.x}" y2="${hP.y}" stroke="${hand}" stroke-width="5" stroke-linecap="round"/>`;
+  h+=`<line x1="${mT.x}" y1="${mT.y}" x2="${mP.x}" y2="${mP.y}" stroke="${hand}" stroke-width="3" stroke-linecap="round"/>`;
+  h+=`<line x1="${cx}" y1="${cy}" x2="${sP.x}" y2="${sP.y}" stroke="#F4A7BB" stroke-width="1.5" stroke-linecap="round"/>`;
+  h+=`<circle cx="${cx}" cy="${cy}" r="6" fill="${hand}"/>`;
+  h+=`<circle cx="${cx}" cy="${cy}" r="2.5" fill="#F4A7BB"/>`;
+
+  svg.innerHTML=h;
+}
+
+function updateDigital(){
+  const n=new Date();
+  let h=n.getHours(),m=n.getMinutes(),s=n.getSeconds();
+  const p=h>=12?'PM':'AM';h=h%12||12;
+  document.getElementById('dtime').textContent=
+    String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0')+' '+p;
+}
+
+document.getElementById('fn').addEventListener('input',function(){
+  const l=this.value.length;
+  const cc=document.getElementById('cc');
+  cc.textContent=l+' / 50';
+  cc.classList.toggle('w',l>44);
+});
+
+// Default start time = next hour
+(function(){
+  const n=new Date();n.setHours(n.getHours()+1,0,0,0);
+  document.getElementById('ftime').value=String(n.getHours()).padStart(2,'0')+':00';
+})();
+
+function tick(){updateDigital();drawClock();renderList();}
+load();tick();
+setInterval(tick,1000);
+</script>
+</body>
+</html>
